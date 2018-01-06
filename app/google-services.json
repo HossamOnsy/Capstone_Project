@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "26630693493",
+    "firebase_url": "https://capstone-graduation-project.firebaseio.com",
+    "project_id": "capstone-graduation-project",
+    "storage_bucket": "capstone-graduation-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:26630693493:android:1416ce27ffeb4a3a",
+        "android_client_info": {
+          "package_name": "com.hossam.capstoneproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "26630693493-virehins0v0p7241t80m8bvkeosi8pbn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBedSB8j4jMKo8uRfGVAfRBbVh4vvj9ki8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

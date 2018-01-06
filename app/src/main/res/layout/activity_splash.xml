@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.hossam.capstoneproject.activities.SplashActivity">
+
+    <ProgressBar
+        android:id="@+id/progressBar1"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:indeterminate="true"
+        android:visibility="gone"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="28dp"
+        android:paddingLeft="20dp"
+        android:layout_above="@id/intriguing"
+        android:paddingRight="20dp" />
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/intriguing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
+
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/say_ok_random_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/speech_prompt"
+        android:textSize="24sp"
+        android:layout_centerInParent="true" />
+</RelativeLayout>
