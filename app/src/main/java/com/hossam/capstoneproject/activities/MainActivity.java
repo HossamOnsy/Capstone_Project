@@ -30,6 +30,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnPausedListener;
 import com.google.firebase.storage.OnProgressListener;
@@ -37,6 +39,7 @@ import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.hossam.capstoneproject.R;
+import com.hossam.capstoneproject.models.SongModel;
 import com.hossam.capstoneproject.utils.FileUtils;
 
 import java.net.URISyntaxException;
@@ -61,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     SimpleExoPlayer player;
 
     Bundle bundle = null;
-    boolean isPlayWhenReady =true;
+    boolean isPlayWhenReady = true;
 
     Unbinder unbinder;
 
@@ -154,6 +157,13 @@ public class MainActivity extends AppCompatActivity {
                     // Get the Uri of the selected file
                     Uri uri = data.getData();
                     Log.d(TAG, "File Uri: " + uri.toString());
+
+                    try {
+                        String s = data.getData().getPath();
+                        Log.d(TAG, "File Path :  " + s);
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
+                    }
                     checkAuth(uri);
                     // Get the path
                     String path = null;
@@ -240,11 +250,30 @@ public class MainActivity extends AppCompatActivity {
                 initializePlayer(downloadUrl);
                 Log.d(TAG, "taskSnapshot -----> " + downloadUrl + " <----------");
                 Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getName() + " <----------");
+                Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getContentType() + " <----------");
+                Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getPath() + " <----------");
+                Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getCreationTimeMillis() + " <----------");
+                SongModel songModel = new SongModel();
+                songModel.setSongName(taskSnapshot.getMetadata().getName());
+                songModel.setSongContentType(taskSnapshot.getMetadata().getContentType());
+                songModel.setSongCreationTimeMilis(String.valueOf(taskSnapshot.getMetadata().getCreationTimeMillis()));
+                songModel.setSongPath(taskSnapshot.getMetadata().getPath());
+                firebaseDataBaseUpdate(songModel);
+
             }
+
+
         });
 
     }
 
+    private void firebaseDataBaseUpdate(SongModel songModel) {
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+        String id = database.child("songs").push().getKey();
+        songModel.setSongId(id);
+        database.child("songs").child(id).setValue(songModel);
+
+    }
 
     private void initializePlayer(Uri uri) {
         if (uri != null) {
@@ -259,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                         new DefaultTrackSelector(), new DefaultLoadControl());
 
             }
-            if(bundle!=null)
+            if (bundle != null)
                 isPlayWhenReady = bundle.getBoolean("playstate");
             player.setPlayWhenReady(isPlayWhenReady);
             player.prepare(mediaSource, true, false);
@@ -290,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //    }
 
-//    @Override
+    //    @Override
 //    public void onStop() {
 //        super.onStop();
 //        if (player != null) {
