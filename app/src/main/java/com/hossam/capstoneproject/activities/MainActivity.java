@@ -3,12 +3,15 @@ package com.hossam.capstoneproject.activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -17,12 +20,18 @@ import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -30,8 +39,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnPausedListener;
 import com.google.firebase.storage.OnProgressListener;
@@ -39,10 +51,14 @@ import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.hossam.capstoneproject.R;
+import com.hossam.capstoneproject.SimpleAppWidgetProvider;
+import com.hossam.capstoneproject.SongsAdapter;
 import com.hossam.capstoneproject.models.SongModel;
 import com.hossam.capstoneproject.utils.FileUtils;
+import com.hossam.capstoneproject.utils.Utils;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -50,33 +66,123 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 
 public class MainActivity extends AppCompatActivity {
-
     private static final int FILE_SELECT_CODE = 0;
     private static final int READ_EXTERNAL_STORAGE_PERMISSION_CODE = 101;
     private static final String TAG = MainActivity.class.getSimpleName();
+    String s;
     @BindView(R.id.progressbar)
     ProgressBar progressBar;
-    @BindView(R.id.upload)
-    Button mUploadButton;
+//    @BindView(R.id.upload)
+//    Button mUploadButton;
+    @BindView(R.id.shuffle)
+    Button shuffle;
+    @BindView(R.id.get_a_different_list)
+    Button get_a_different_list;
     @BindView(R.id.video_view)
     SimpleExoPlayerView video_view;
-
+    @BindView(R.id.recycler_view)
+    RecyclerView recycler_view;
+    String start = "0", end = "2";
+    String maxid;
+    ArrayList<SongModel> songModels;
     SimpleExoPlayer player;
-
+    FirebaseDatabase database;
     Bundle bundle = null;
     boolean isPlayWhenReady = true;
+    int lastKnownIndex = -1;
+
+    String METADATA_KEY_ARTIST = null;
+    String METADATA_KEY_AUTHOR = null;
+    String METADATA_KEY_DURATION = null;
+    String METADATA_KEY_GENRE = null;
+    String METADATA_KEY_TITLE = null;
+
 
     Unbinder unbinder;
+    int i = 0;
+    MediaSource mediaSource;
+    MediaMetadataRetriever mmr;
+    String albumName;
 
-    @OnClick({R.id.upload})
+    @OnClick({ R.id.shuffle, R.id.get_a_different_list})
     void View(View view) {
         switch (view.getId()) {
-            case R.id.upload: {
-                mUploadButton.setClickable(false);
+//            case R.id.upload: {
+//                mUploadButton.setClickable(false);
+//                progressBar.setVisibility(View.VISIBLE);
+//                checkPermissions();
+//            }
+//            break;
+            case R.id.get_a_different_list: {
                 progressBar.setVisibility(View.VISIBLE);
-                checkPermissions();
+                shuffleModeInFirebase(database);
             }
+            break;
+            case R.id.shuffle: {
+                if (songModels != null) {
+                    int jj = (int) (Math.random() * songModels.size());
+                    lastKnownIndex = jj;
+                    mediaSource = buildMediaSource(Uri.parse(songModels.get(jj).getSongPath()));
+                    if (bundle != null)
+                        isPlayWhenReady = bundle.getBoolean("playstate");
+                    player.setPlayWhenReady(isPlayWhenReady);
+                    player.prepare(mediaSource, true, false);
+                }
+            }
+            break;
+
+
         }
+    }
+
+    void shuffleModeInFirebase(FirebaseDatabase database) {
+        try {
+            int x = 1;
+            int y = 0;
+            while (x > y) {
+                x = (int) (Math.random() * Integer.parseInt(maxid));
+                y = (int) (Math.random() * Integer.parseInt(maxid));
+
+            }
+            start = String.valueOf(x);
+            end = String.valueOf(y);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        DatabaseReference ref = database.getReference("songs");
+        ref.orderByChild("songId").startAt(start).endAt(end).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                songModels = new ArrayList<>();
+                Log.v(TAG, dataSnapshot.toString());
+                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+                    Log.v(TAG, dataSnapshot1.toString());
+                    SongModel songModel = dataSnapshot1.getValue(SongModel.class);
+                    songModels.add(songModel);
+                }
+
+                SongsAdapter songsAdapter = new SongsAdapter(songModels, MainActivity.this);
+                recycler_view.setAdapter(songsAdapter);
+                try {
+                    Log.v(TAG, songModels.size() + "size");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (songModels.size() > 0 && lastKnownIndex == -1) {
+                    lastKnownIndex = 0;
+                    initializePlayer(Uri.parse(songModels.get(0).getSongPath()));
+                }
+
+                progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+                progressBar.setVisibility(View.GONE);
+            }
+        });
     }
 
     @Override
@@ -85,6 +191,29 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         unbinder = ButterKnife.bind(this);
+
+        recycler_view.setHasFixedSize(true);
+        recycler_view.setLayoutManager(new LinearLayoutManager(this));
+
+
+        database = FirebaseDatabase.getInstance();
+
+        DatabaseReference ref2 = database.getReference("id");
+        start = "0";
+
+        ref2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                maxid = dataSnapshot.getValue(String.class);
+//                Log.v(TAG, end);
+                shuffleModeInFirebase(database);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
     }
 
     void checkPermissions() {
@@ -159,11 +288,28 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "File Uri: " + uri.toString());
 
                     try {
-                        String s = data.getData().getPath();
-                        Log.d(TAG, "File Path :  " + s);
-                    } catch (NullPointerException e) {
-                        e.printStackTrace();
+//                        s = data.getData().getPath();
+//                        Log.d(TAG, "File Path :  " + s);
+                        mmr = new MediaMetadataRetriever();
+                        mmr.setDataSource(MainActivity.this, uri);
+                        albumName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                        METADATA_KEY_ARTIST = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                        METADATA_KEY_AUTHOR = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR);
+                        METADATA_KEY_DURATION = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                        METADATA_KEY_GENRE = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+                        METADATA_KEY_TITLE = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        Log.v(TAG, "albumName ---> " + albumName);
+                    } catch (Exception e) {
+//                        album_art.setBackgroundColor(Color.GRAY);
+                        albumName = ("Unknown Album");
+                        METADATA_KEY_ARTIST = ("Unknown Artist");
+                        METADATA_KEY_AUTHOR = ("Unknown Author");
+                        METADATA_KEY_DURATION = ("Unknown Duration");
+                        METADATA_KEY_GENRE = ("Unknown Genre");
+                        METADATA_KEY_TITLE = ("Unknown Title");
+
                     }
+
                     checkAuth(uri);
                     // Get the path
                     String path = null;
@@ -178,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
                     // File file = new File(path);
                     // Initiate the upload
                 }
-                mUploadButton.setClickable(true);
+//                mUploadButton.setClickable(true);
                 progressBar.setVisibility(View.GONE);
                 break;
         }
@@ -204,7 +350,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
-
 
     private void uploadFileToFirebase(Uri uri) {
 
@@ -248,16 +393,30 @@ public class MainActivity extends AppCompatActivity {
                 // Handle successful uploads on complete
                 Uri downloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
                 initializePlayer(downloadUrl);
-                Log.d(TAG, "taskSnapshot -----> " + downloadUrl + " <----------");
-                Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getName() + " <----------");
-                Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getContentType() + " <----------");
-                Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getPath() + " <----------");
-                Log.d(TAG, "taskSnapshot -----> " + taskSnapshot.getMetadata().getCreationTimeMillis() + " <----------");
+
                 SongModel songModel = new SongModel();
-                songModel.setSongName(taskSnapshot.getMetadata().getName());
-                songModel.setSongContentType(taskSnapshot.getMetadata().getContentType());
-                songModel.setSongCreationTimeMilis(String.valueOf(taskSnapshot.getMetadata().getCreationTimeMillis()));
-                songModel.setSongPath(taskSnapshot.getMetadata().getPath());
+                if(METADATA_KEY_ARTIST!=null)
+                songModel.setSongArtist(METADATA_KEY_ARTIST);
+                else
+                    songModel.setSongArtist("Unknown");
+                if(METADATA_KEY_TITLE!=null)
+                songModel.setSongName(METADATA_KEY_TITLE);
+                else
+                    songModel.setSongName("Unknown");
+                if(METADATA_KEY_AUTHOR!=null)
+                songModel.setSongAuthor(METADATA_KEY_AUTHOR);
+                else
+                    songModel.setSongAuthor("Unknown");
+                if(METADATA_KEY_DURATION!=null)
+                songModel.setSongDuration(METADATA_KEY_DURATION);
+                else
+                    songModel.setSongDuration("Unknown");
+                if(METADATA_KEY_GENRE!=null)
+                songModel.setSongGenre(METADATA_KEY_GENRE);
+                else
+                    songModel.setSongGenre("Unknown");
+
+                songModel.setSongPath(String.valueOf(downloadUrl));
                 firebaseDataBaseUpdate(songModel);
 
             }
@@ -268,20 +427,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void firebaseDataBaseUpdate(SongModel songModel) {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-        String id = database.child("songs").push().getKey();
-        songModel.setSongId(id);
-        database.child("songs").child(id).setValue(songModel);
 
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+
+        database.child("id").setValue(String.valueOf(i));
+
+        songModel.setSongId(String.valueOf(i));
+        database.child("songs").child(String.valueOf(i)).setValue(songModel);
+        i++;
     }
 
     private void initializePlayer(Uri uri) {
+
+        if (lastKnownIndex != -1) {
+            Utils.saveObjectInPreference(this, "SongModel", songModels.get(lastKnownIndex));
+        }
         if (uri != null) {
+            SimpleAppWidgetProvider.sendRefreshBroadcast(this);
 //            SimpleExoPlayer player = ExoPlayerFactory.newSimpleInstance(
 //                    new DefaultRenderersFactory(getActivity().getApplicationContext()),
 //                    new DefaultTrackSelector(), new DefaultLoadControl());
 
-            MediaSource mediaSource = buildMediaSource(uri);
+            mediaSource = buildMediaSource(uri);
             if (player == null) {
                 player = ExoPlayerFactory.newSimpleInstance(
                         new DefaultRenderersFactory(this.getApplicationContext()),
@@ -292,11 +459,68 @@ public class MainActivity extends AppCompatActivity {
                 isPlayWhenReady = bundle.getBoolean("playstate");
             player.setPlayWhenReady(isPlayWhenReady);
             player.prepare(mediaSource, true, false);
+            player.addListener(new ExoPlayer.EventListener() {
+                @Override
+                public void onTimelineChanged(Timeline timeline, Object manifest) {
+
+                }
+
+                @Override
+                public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+                }
+
+                @Override
+                public void onLoadingChanged(boolean isLoading) {
+
+                }
+
+                @Override
+                public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+                    switch (playbackState) {
+                        case ExoPlayer.STATE_BUFFERING:
+                            break;
+                        case ExoPlayer.STATE_ENDED:
+                            //do what you want
+                            if (songModels != null) {
+                                int jj = (int) (Math.random() * songModels.size() - 1);
+                                lastKnownIndex = jj;
+                                mediaSource = buildMediaSource(Uri.parse(songModels.get(jj).getSongPath()));
+                                if (bundle != null)
+                                    isPlayWhenReady = bundle.getBoolean("playstate");
+                                player.setPlayWhenReady(isPlayWhenReady);
+                                player.prepare(mediaSource, true, false);
+                            }
+                            break;
+                        case ExoPlayer.STATE_IDLE:
+                            break;
+                        case ExoPlayer.STATE_READY:
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                @Override
+                public void onPlayerError(ExoPlaybackException error) {
+
+                }
+
+                @Override
+                public void onPositionDiscontinuity() {
+
+                }
+
+                @Override
+                public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+
+                }
+            });
+
 
             video_view.setPlayer(player);
             if (bundle != null) {
                 player.seekTo(bundle.getLong("timer"));
-
             }
 
         }

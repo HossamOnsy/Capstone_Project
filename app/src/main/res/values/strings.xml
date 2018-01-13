@@ -4,5 +4,9 @@
     <string name="speech_prompt">Say        "     OK    Randomness   " </string>
     <string name="speech_not_supported">Sorry! Your device doesn\'t support speech input</string>
     <string name="tap_on_mic">Tap on mic to speak</string>
+    <string name="get_a_different_list">Get a Different List</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="upload">Upload</string>
+    <string name="unknown">Unknown</string>
 
 </resources>

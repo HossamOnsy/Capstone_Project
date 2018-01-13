@@ -9,35 +9,17 @@ import android.os.Parcelable;
 
 public class SongModel implements Parcelable {
 
-    public static final Parcelable.Creator<SongModel> CREATOR = new Parcelable.Creator<SongModel>() {
-        @Override
-        public SongModel createFromParcel(Parcel source) {
-            return new SongModel(source);
-        }
-
-        @Override
-        public SongModel[] newArray(int size) {
-            return new SongModel[size];
-        }
-    };
 
 
     String songId = "";
     String songName = "";
-    String songContentType = "";
     String songPath = "";
-    String songCreationTimeMilis = "";
-
+    String songArtist = "";
+    String songGenre = "";
+    String songAuthor = "";
+    String songDuration = "";
 
     public SongModel() {
-    }
-
-    protected SongModel(Parcel in) {
-        this.songId = in.readString();
-        this.songName = in.readString();
-        this.songContentType = in.readString();
-        this.songPath = in.readString();
-        this.songCreationTimeMilis = in.readString();
     }
 
     public String getSongId() {
@@ -56,14 +38,6 @@ public class SongModel implements Parcelable {
         this.songName = songName;
     }
 
-    public String getSongContentType() {
-        return songContentType;
-    }
-
-    public void setSongContentType(String songContentType) {
-        this.songContentType = songContentType;
-    }
-
     public String getSongPath() {
         return songPath;
     }
@@ -72,14 +46,37 @@ public class SongModel implements Parcelable {
         this.songPath = songPath;
     }
 
-    public String getSongCreationTimeMilis() {
-        return songCreationTimeMilis;
+    public String getSongArtist() {
+        return songArtist;
     }
 
-    public void setSongCreationTimeMilis(String songCreationTimeMilis) {
-        this.songCreationTimeMilis = songCreationTimeMilis;
+    public void setSongArtist(String songArtist) {
+        this.songArtist = songArtist;
     }
 
+    public String getSongGenre() {
+        return songGenre;
+    }
+
+    public void setSongGenre(String songGenre) {
+        this.songGenre = songGenre;
+    }
+
+    public String getSongAuthor() {
+        return songAuthor;
+    }
+
+    public void setSongAuthor(String songAuthor) {
+        this.songAuthor = songAuthor;
+    }
+
+    public String getSongDuration() {
+        return songDuration;
+    }
+
+    public void setSongDuration(String songDuration) {
+        this.songDuration = songDuration;
+    }
 
     @Override
     public int describeContents() {
@@ -90,8 +87,32 @@ public class SongModel implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.songId);
         dest.writeString(this.songName);
-        dest.writeString(this.songContentType);
         dest.writeString(this.songPath);
-        dest.writeString(this.songCreationTimeMilis);
+        dest.writeString(this.songArtist);
+        dest.writeString(this.songGenre);
+        dest.writeString(this.songAuthor);
+        dest.writeString(this.songDuration);
     }
+
+    protected SongModel(Parcel in) {
+        this.songId = in.readString();
+        this.songName = in.readString();
+        this.songPath = in.readString();
+        this.songArtist = in.readString();
+        this.songGenre = in.readString();
+        this.songAuthor = in.readString();
+        this.songDuration = in.readString();
+    }
+
+    public static final Parcelable.Creator<SongModel> CREATOR = new Parcelable.Creator<SongModel>() {
+        @Override
+        public SongModel createFromParcel(Parcel source) {
+            return new SongModel(source);
+        }
+
+        @Override
+        public SongModel[] newArray(int size) {
+            return new SongModel[size];
+        }
+    };
 }
