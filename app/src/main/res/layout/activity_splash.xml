@@ -5,6 +5,12 @@
     android:layout_height="match_parent"
     tools:context="com.hossam.capstoneproject.activities.SplashActivity">
 
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/randomness"
+        android:layout_centerInParent="true"/>
     <ProgressBar
         android:id="@+id/progressBar1"
         style="?android:attr/progressBarStyleHorizontal"

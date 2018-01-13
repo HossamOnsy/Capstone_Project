@@ -9,6 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -31,6 +34,8 @@ public class SplashActivity extends AppCompatActivity implements RecognitionList
     TextView say_ok_random_text_view;
     @BindView(R.id.progressBar1)
     ProgressBar progressBar1;
+    @BindView(R.id.logo)
+    ImageView logo;
 
 
     Unbinder unbinder;
@@ -79,8 +84,34 @@ public class SplashActivity extends AppCompatActivity implements RecognitionList
         setContentView(R.layout.activity_splash);
 
         unbinder = ButterKnife.bind(this);
+        intriguing.setVisibility(View.GONE);
+        intriguing.setAlpha(0.0f);
+         Animation animation1 = AnimationUtils.loadAnimation(this,
+         R.anim.slide);
+         animation1.setAnimationListener(new Animation.AnimationListener() {
+             @Override
+             public void onAnimationStart(Animation animation) {
 
+             }
 
+             @Override
+             public void onAnimationEnd(Animation animation) {
+                 intriguing.setVisibility(View.VISIBLE);
+                 intriguing.animate().setDuration(1000).alpha(1.0f);
+                 logo.animate().setDuration(1000).alpha(0.0f);
+                 logo.setVisibility(View.GONE);
+             }
+
+             @Override
+             public void onAnimationRepeat(Animation animation) {
+
+             }
+         });
+        logo.startAnimation(animation1);
+        // Animation animation1 = AnimationUtils.loadAnimation(this,
+        // R.anim.myanimation);
+        // animation1.setAnimationListener(this);
+        // animatedView1.startAnimation(animation1);
     }
 
     @OnClick({R.id.intriguing})
