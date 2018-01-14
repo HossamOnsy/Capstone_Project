@@ -1,4 +1,4 @@
-package com.hossam.capstoneproject;
+package com.hossam.capstoneproject.utils;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -9,9 +9,9 @@ import android.content.Intent;
 import android.widget.RemoteViews;
 
 import com.google.gson.Gson;
+import com.hossam.capstoneproject.R;
 import com.hossam.capstoneproject.activities.MainActivity;
 import com.hossam.capstoneproject.models.SongModel;
-import com.hossam.capstoneproject.utils.Utils;
 
 /**
  * Created by hossam on 06/12/17.
@@ -84,7 +84,7 @@ public class SimpleAppWidgetProvider extends AppWidgetProvider {
             String json = Utils.getFromPreference(context, "SongModel");
             SongModel songModel = gson.fromJson(json, SongModel.class);
             if (songModel != null)
-                rv.setTextViewText(R.id.widget_text_view, "Now Playing ... " + songModel.getSongName());
+                rv.setTextViewText(R.id.widget_text_view, context.getString(R.string.now_playing) + songModel.getSongName());
             // Set up the RemoteViews object to use a RemoteViews adapter.
 
             // This adapter connects

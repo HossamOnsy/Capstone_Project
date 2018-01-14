@@ -8,5 +8,8 @@
     <string name="shuffle">Shuffle</string>
     <string name="upload">Upload</string>
     <string name="unknown">Unknown</string>
+    <string name="song_name">Song Name : </string>
+    <string name="duration">Duration : </string>
+    <string name="now_playing">Now Playing … </string>
 
 </resources>

@@ -45,7 +45,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".SimpleAppWidgetProvider"
+            android:name=".utils.SimpleAppWidgetProvider"
             android:icon="@drawable/exo_controls_play"
             android:label="CapStoneProject">
             <intent-filter>

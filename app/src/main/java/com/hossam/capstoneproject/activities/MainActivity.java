@@ -1,14 +1,8 @@
 package com.hossam.capstoneproject.activities;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,7 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -44,20 +37,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnPausedListener;
-import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageMetadata;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.hossam.capstoneproject.R;
-import com.hossam.capstoneproject.SimpleAppWidgetProvider;
 import com.hossam.capstoneproject.SongsAdapter;
 import com.hossam.capstoneproject.models.SongModel;
-import com.hossam.capstoneproject.utils.FileUtils;
+import com.hossam.capstoneproject.utils.SimpleAppWidgetProvider;
 import com.hossam.capstoneproject.utils.Utils;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -65,14 +50,22 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
+
+/**
+ * All The Commented Methods are for the Uploading to be completed as it was the main core for the app to be initiated
+ *
+ * @param
+ */
+
+
 public class MainActivity extends AppCompatActivity {
-    private static final int FILE_SELECT_CODE = 0;
-    private static final int READ_EXTERNAL_STORAGE_PERMISSION_CODE = 101;
+//    private static final int FILE_SELECT_CODE = 0;
+//    private static final int READ_EXTERNAL_STORAGE_PERMISSION_CODE = 101;
     private static final String TAG = MainActivity.class.getSimpleName();
     String s;
     @BindView(R.id.progressbar)
     ProgressBar progressBar;
-//    @BindView(R.id.upload)
+    //    @BindView(R.id.upload)
 //    Button mUploadButton;
     @BindView(R.id.shuffle)
     Button shuffle;
@@ -91,20 +84,20 @@ public class MainActivity extends AppCompatActivity {
     boolean isPlayWhenReady = true;
     int lastKnownIndex = -1;
 
-    String METADATA_KEY_ARTIST = null;
-    String METADATA_KEY_AUTHOR = null;
-    String METADATA_KEY_DURATION = null;
-    String METADATA_KEY_GENRE = null;
-    String METADATA_KEY_TITLE = null;
+//    String METADATA_KEY_ARTIST = null;
+//    String METADATA_KEY_AUTHOR = null;
+//    String METADATA_KEY_DURATION = null;
+//    String METADATA_KEY_GENRE = null;
+//    String METADATA_KEY_TITLE = null;
 
 
     Unbinder unbinder;
-    int i = 0;
+//    int i = 0;
     MediaSource mediaSource;
-    MediaMetadataRetriever mmr;
-    String albumName;
+//    MediaMetadataRetriever mmr;
+//    String albumName;
 
-    @OnClick({ R.id.shuffle, R.id.get_a_different_list})
+    @OnClick({R.id.shuffle, R.id.get_a_different_list})
     void View(View view) {
         switch (view.getId()) {
 //            case R.id.upload: {
@@ -195,12 +188,16 @@ public class MainActivity extends AppCompatActivity {
         recycler_view.setHasFixedSize(true);
         recycler_view.setLayoutManager(new LinearLayoutManager(this));
 
+        checkAuth();
 
-        database = FirebaseDatabase.getInstance();
 
-        DatabaseReference ref2 = database.getReference("id");
         start = "0";
 
+
+    }
+
+    private void getMaximumId() {
+        DatabaseReference ref2 = database.getReference("id");
         ref2.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -214,133 +211,25 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("The read failed: " + databaseError.getCode());
             }
         });
+
     }
 
-    void checkPermissions() {
-        // Here, thisActivity is the current activity
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-
-            // No explanation needed, we can request the permission.
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_CONTACTS},
-                    READ_EXTERNAL_STORAGE_PERMISSION_CODE);
-
-            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-            // app-defined int constant. The callback method gets the
-            // result of the request.
-
-        } else
-            showFileChooser();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case READ_EXTERNAL_STORAGE_PERMISSION_CODE: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    showFileChooser();
-                } else {
-                    Toast.makeText(this, "Please Allow Reading From External Storage For Uploading", Toast.LENGTH_SHORT).show();
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-    private void showFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        try {
-            startActivityForResult(
-                    Intent.createChooser(intent, "Select a File to Upload"),
-                    FILE_SELECT_CODE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            // Potentially direct the user to the Market with a Dialog
-            Toast.makeText(this, "Please install a File Manager.",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case FILE_SELECT_CODE:
-                if (resultCode == RESULT_OK) {
-                    // Get the Uri of the selected file
-                    Uri uri = data.getData();
-                    Log.d(TAG, "File Uri: " + uri.toString());
-
-                    try {
-//                        s = data.getData().getPath();
-//                        Log.d(TAG, "File Path :  " + s);
-                        mmr = new MediaMetadataRetriever();
-                        mmr.setDataSource(MainActivity.this, uri);
-                        albumName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-                        METADATA_KEY_ARTIST = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                        METADATA_KEY_AUTHOR = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR);
-                        METADATA_KEY_DURATION = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                        METADATA_KEY_GENRE = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
-                        METADATA_KEY_TITLE = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                        Log.v(TAG, "albumName ---> " + albumName);
-                    } catch (Exception e) {
-//                        album_art.setBackgroundColor(Color.GRAY);
-                        albumName = ("Unknown Album");
-                        METADATA_KEY_ARTIST = ("Unknown Artist");
-                        METADATA_KEY_AUTHOR = ("Unknown Author");
-                        METADATA_KEY_DURATION = ("Unknown Duration");
-                        METADATA_KEY_GENRE = ("Unknown Genre");
-                        METADATA_KEY_TITLE = ("Unknown Title");
-
-                    }
-
-                    checkAuth(uri);
-                    // Get the path
-                    String path = null;
-                    try {
-                        path = FileUtils.getPath(this, uri);
-                        Log.d(TAG, "File Path: " + path);
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Get the file instance
-                    // File file = new File(path);
-                    // Initiate the upload
-                }
-//                mUploadButton.setClickable(true);
-                progressBar.setVisibility(View.GONE);
-                break;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private void checkAuth(final Uri uri) {
+    private void checkAuth() {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            uploadFileToFirebase(uri);
+            database = FirebaseDatabase.getInstance();
+            getMaximumId();
+//            uploadFileToFirebase(uri);
         } else {
             mAuth.signInAnonymously().addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
                 @Override
                 public void onSuccess(AuthResult authResult) {
-                    uploadFileToFirebase(uri);
+                    database = FirebaseDatabase.getInstance();
+                    getMaximumId();
+
+//                    uploadFileToFirebase(uri);
+
                 }
             }).addOnFailureListener(this, new OnFailureListener() {
                 @Override
@@ -349,92 +238,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-    }
-
-    private void uploadFileToFirebase(Uri uri) {
-
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        // Create a storage reference from our app
-        StorageReference storageRef = storage.getReference();
-
-        // File or Blob   //uri
-
-        // Create the file metadata
-        StorageMetadata metadata = new StorageMetadata.Builder()
-                .setContentType("audio/mpeg")
-                .build();
-        // Upload file and metadata to the path 'images/mountains.jpg'
-        UploadTask uploadTask = storageRef.child("songs/" + uri.getLastPathSegment()).putFile(uri, metadata);
-
-        // Listen for state changes, errors, and completion of the upload.
-        uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                System.out.println("Upload is " + progress + "% done");
-                Log.d(TAG, "taskSnapshot -----> " + "Upload is " + progress + "% done" + " <----------");
-                progressBar.setVisibility(View.VISIBLE);
-            }
-        }).addOnPausedListener(new OnPausedListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onPaused(UploadTask.TaskSnapshot taskSnapshot) {
-                System.out.println("Upload is paused");
-                Log.d(TAG, "taskSnapshot -----> " + "Upload is paused" + " <----------");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Handle unsuccessful uploads
-                Log.d(TAG, "exception -----> " + exception.getMessage() + " <----------");
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                // Handle successful uploads on complete
-                Uri downloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
-                initializePlayer(downloadUrl);
-
-                SongModel songModel = new SongModel();
-                if(METADATA_KEY_ARTIST!=null)
-                songModel.setSongArtist(METADATA_KEY_ARTIST);
-                else
-                    songModel.setSongArtist("Unknown");
-                if(METADATA_KEY_TITLE!=null)
-                songModel.setSongName(METADATA_KEY_TITLE);
-                else
-                    songModel.setSongName("Unknown");
-                if(METADATA_KEY_AUTHOR!=null)
-                songModel.setSongAuthor(METADATA_KEY_AUTHOR);
-                else
-                    songModel.setSongAuthor("Unknown");
-                if(METADATA_KEY_DURATION!=null)
-                songModel.setSongDuration(METADATA_KEY_DURATION);
-                else
-                    songModel.setSongDuration("Unknown");
-                if(METADATA_KEY_GENRE!=null)
-                songModel.setSongGenre(METADATA_KEY_GENRE);
-                else
-                    songModel.setSongGenre("Unknown");
-
-                songModel.setSongPath(String.valueOf(downloadUrl));
-                firebaseDataBaseUpdate(songModel);
-
-            }
-
-
-        });
-
-    }
-
-    private void firebaseDataBaseUpdate(SongModel songModel) {
-
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-
-        database.child("id").setValue(String.valueOf(i));
-
-        songModel.setSongId(String.valueOf(i));
-        database.child("songs").child(String.valueOf(i)).setValue(songModel);
-        i++;
     }
 
     private void initializePlayer(Uri uri) {
@@ -535,6 +338,235 @@ public class MainActivity extends AppCompatActivity {
                 new DefaultHttpDataSourceFactory("ua"),
                 new DefaultExtractorsFactory(), null, null);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (unbinder != null)
+            unbinder.unbind();
+    }
+    /**
+     *
+     * All The Commented Methods are for the Uploading to be completed
+     *
+     *
+     * @param uri
+     */
+//    void checkPermissions() {
+//        // Here, thisActivity is the current activity
+//        if (ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.READ_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED) {
+//
+//
+//            // No explanation needed, we can request the permission.
+//
+//            ActivityCompat.requestPermissions(this,
+//                    new String[]{Manifest.permission.READ_CONTACTS},
+//                    READ_EXTERNAL_STORAGE_PERMISSION_CODE);
+//
+//            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+//            // app-defined int constant. The callback method gets the
+//            // result of the request.
+//
+//        } else
+//            showFileChooser();
+//    }
+
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode,
+//                                           String permissions[], int[] grantResults) {
+//        switch (requestCode) {
+//            case READ_EXTERNAL_STORAGE_PERMISSION_CODE: {
+//                // If request is cancelled, the result arrays are empty.
+//                if (grantResults.length > 0
+//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//
+//                    // permission was granted, yay! Do the
+//                    // contacts-related task you need to do.
+//                    showFileChooser();
+//                } else {
+//                    Toast.makeText(this, "Please Allow Reading From External Storage For Uploading", Toast.LENGTH_SHORT).show();
+//                    // permission denied, boo! Disable the
+//                    // functionality that depends on this permission.
+//                }
+//                return;
+//            }
+//
+//            // other 'case' lines to check for other
+//            // permissions this app might request
+//        }
+//    }
+
+//    private void showFileChooser() {
+//        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//        intent.setType("*/*");
+//        intent.addCategory(Intent.CATEGORY_OPENABLE);
+//
+//        try {
+//            startActivityForResult(
+//                    Intent.createChooser(intent, "Select a File to Upload"),
+//                    FILE_SELECT_CODE);
+//        } catch (android.content.ActivityNotFoundException ex) {
+//            // Potentially direct the user to the Market with a Dialog
+//            Toast.makeText(this, "Please install a File Manager.",
+//                    Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
+    /**
+     * onActivityResult was only used to choose a mp3 file and upload it to database
+     *
+     * @param
+     */
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        switch (requestCode) {
+//            case FILE_SELECT_CODE:
+//                if (resultCode == RESULT_OK) {
+//                    // Get the Uri of the selected file
+//                    Uri uri = data.getData();
+//                    Log.d(TAG, "File Uri: " + uri.toString());
+//
+//                    try {
+////                        s = data.getData().getPath();
+////                        Log.d(TAG, "File Path :  " + s);
+//                        mmr = new MediaMetadataRetriever();
+//                        mmr.setDataSource(MainActivity.this, uri);
+//                        albumName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+//                        METADATA_KEY_ARTIST = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+//                        METADATA_KEY_AUTHOR = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR);
+//                        METADATA_KEY_DURATION = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+//                        METADATA_KEY_GENRE = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+//                        METADATA_KEY_TITLE = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+//                        Log.v(TAG, "albumName ---> " + albumName);
+//                    } catch (Exception e) {
+////                        album_art.setBackgroundColor(Color.GRAY);
+//                        albumName = ("Unknown Album");
+//                        METADATA_KEY_ARTIST = ("Unknown Artist");
+//                        METADATA_KEY_AUTHOR = ("Unknown Author");
+//                        METADATA_KEY_DURATION = ("Unknown Duration");
+//                        METADATA_KEY_GENRE = ("Unknown Genre");
+//                        METADATA_KEY_TITLE = ("Unknown Title");
+//
+//                    }
+//
+//                    checkAuth(uri);
+//                    // Get the path
+//                    String path = null;
+//                    try {
+//                        path = FileUtils.getPath(this, uri);
+//                        Log.d(TAG, "File Path: " + path);
+//                    } catch (URISyntaxException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    // Get the file instance
+//                    // File file = new File(path);
+//                    // Initiate the upload
+//                }
+////                mUploadButton.setClickable(true);
+//                progressBar.setVisibility(View.GONE);
+//                break;
+//        }
+//        super.onActivityResult(requestCode, resultCode, data);
+//    }
+
+
+    /**
+     * uploadFileToFirebase as well as firebaseupdate methods are both for the uploading feature which
+     * i used to upload and save data in firebase
+     *
+     * @param uri
+     */
+//    private void uploadFileToFirebase(Uri uri) {
+//
+//        FirebaseStorage storage = FirebaseStorage.getInstance();
+//        // Create a storage reference from our app
+//        StorageReference storageRef = storage.getReference();
+//
+//        // File or Blob   //uri
+//
+//        // Create the file metadata
+//        StorageMetadata metadata = new StorageMetadata.Builder()
+//                .setContentType("audio/mpeg")
+//                .build();
+//        // Upload file and metadata to the path 'images/mountains.jpg'
+//        UploadTask uploadTask = storageRef.child("songs/" + uri.getLastPathSegment()).putFile(uri, metadata);
+//
+//        // Listen for state changes, errors, and completion of the upload.
+//        uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+//            @Override
+//            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+//                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+//                System.out.println("Upload is " + progress + "% done");
+//                Log.d(TAG, "taskSnapshot -----> " + "Upload is " + progress + "% done" + " <----------");
+//                progressBar.setVisibility(View.VISIBLE);
+//            }
+//        }).addOnPausedListener(new OnPausedListener<UploadTask.TaskSnapshot>() {
+//            @Override
+//            public void onPaused(UploadTask.TaskSnapshot taskSnapshot) {
+//                System.out.println("Upload is paused");
+//                Log.d(TAG, "taskSnapshot -----> " + "Upload is paused" + " <----------");
+//            }
+//        }).addOnFailureListener(new OnFailureListener() {
+//            @Override
+//            public void onFailure(@NonNull Exception exception) {
+//                // Handle unsuccessful uploads
+//                Log.d(TAG, "exception -----> " + exception.getMessage() + " <----------");
+//            }
+//        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//            @Override
+//            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                // Handle successful uploads on complete
+//                Uri downloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
+//                initializePlayer(downloadUrl);
+//
+//                SongModel songModel = new SongModel();
+//                if(METADATA_KEY_ARTIST!=null)
+//                songModel.setSongArtist(METADATA_KEY_ARTIST);
+//                else
+//                    songModel.setSongArtist("Unknown");
+//                if(METADATA_KEY_TITLE!=null)
+//                songModel.setSongName(METADATA_KEY_TITLE);
+//                else
+//                    songModel.setSongName("Unknown");
+//                if(METADATA_KEY_AUTHOR!=null)
+//                songModel.setSongAuthor(METADATA_KEY_AUTHOR);
+//                else
+//                    songModel.setSongAuthor("Unknown");
+//                if(METADATA_KEY_DURATION!=null)
+//                songModel.setSongDuration(METADATA_KEY_DURATION);
+//                else
+//                    songModel.setSongDuration("Unknown");
+//                if(METADATA_KEY_GENRE!=null)
+//                songModel.setSongGenre(METADATA_KEY_GENRE);
+//                else
+//                    songModel.setSongGenre("Unknown");
+//
+//                songModel.setSongPath(String.valueOf(downloadUrl));
+//                firebaseDataBaseUpdate(songModel);
+//
+//            }
+//
+//
+//        });
+//
+//    }
+
+//    private void firebaseDataBaseUpdate(SongModel songModel) {
+//
+//        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+//
+//        database.child("id").setValue(String.valueOf(i));
+//
+//        songModel.setSongId(String.valueOf(i));
+//        database.child("songs").child(String.valueOf(i)).setValue(songModel);
+//        i++;
+//    }
+
+
+    // This Part was tested however i want to keep the player running in the background
 //    @Override
 //    public void onPause() {
 //        super.onPause();
@@ -542,18 +574,13 @@ public class MainActivity extends AppCompatActivity {
 //            player.release();
 //        }
 //    }
-
-    //    @Override
+//
+//        @Override
 //    public void onStop() {
 //        super.onStop();
 //        if (player != null) {
 //            player.release();
 //        }
 //    }
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (unbinder != null)
-            unbinder.unbind();
-    }
+
 }

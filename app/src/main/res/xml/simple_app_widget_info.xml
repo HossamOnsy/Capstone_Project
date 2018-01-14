@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="50dp"
-    android:minHeight="50dp"
+    android:minWidth="100dp"
+    android:minHeight="75dp"
     android:updatePeriodMillis="12000000"
     android:previewImage="@drawable/exo_controls_play"
     android:initialLayout="@layout/simpe_app_widget_info"

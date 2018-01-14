@@ -29,10 +29,10 @@ public class DetailsActivity extends AppCompatActivity {
         if (songModel != null)
         {
             try {
-                song_name.setText(songModel.getSongName());
+                String songName=getString(R.string.song_name) +songModel.getSongName();
+                song_name.setText(songName);
                 long seconds = Long.parseLong(songModel.getSongDuration()) / 1000;
                 long minutes = seconds / 60;
-                long hours = minutes / 60;
                 String seconds1=seconds% 60+"",minutes1=minutes% 60+"";
                 if(seconds% 60<10)
                     seconds1 = "0"+seconds% 60;
@@ -40,7 +40,8 @@ public class DetailsActivity extends AppCompatActivity {
                     minutes1 = "0"+minutes% 60;
 
                 String time =  minutes1  + ":" + seconds1;
-                song_duration.setText("Duration : " + time);
+                time = getString(R.string.duration) +time;
+                song_duration.setText( time);
             }catch (Exception e){
                 e.printStackTrace();
                 song_duration.setText(getString(R.string.unknown));
