@@ -160,7 +160,7 @@ public class SplashActivity extends AppCompatActivity implements RecognitionList
     private Job createJob(FirebaseJobDispatcher dispatcher) {
         Log.v("JobScheduler", "createJob");
 
-        Job job = dispatcher.newJobBuilder()
+        return dispatcher.newJobBuilder()
                 //persist the task across boots
                 .setLifetime(Lifetime.FOREVER)
                 //.setLifetime(Lifetime.UNTIL_NEXT_BOOT)
@@ -178,7 +178,6 @@ public class SplashActivity extends AppCompatActivity implements RecognitionList
                 .setRetryStrategy(RetryStrategy.DEFAULT_LINEAR)
                 //.setRetryStrategy(RetryStrategy.DEFAULT_EXPONENTIAL)
                 .build();
-        return job;
     }
 
     //    ACCESS_NETWORK_STATE
@@ -246,7 +245,7 @@ public class SplashActivity extends AppCompatActivity implements RecognitionList
 
         switch (requestCode) {
             case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == RESULT_OK && null != data) {
+                if (resultCode == RESULT_OK && data != null) {
 
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
