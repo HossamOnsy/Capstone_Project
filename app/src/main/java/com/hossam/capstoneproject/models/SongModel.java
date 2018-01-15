@@ -10,7 +10,17 @@ import android.os.Parcelable;
 public class SongModel implements Parcelable {
 
 
+    public static final Parcelable.Creator<SongModel> CREATOR = new Parcelable.Creator<SongModel>() {
+        @Override
+        public SongModel createFromParcel(Parcel source) {
+            return new SongModel(source);
+        }
 
+        @Override
+        public SongModel[] newArray(int size) {
+            return new SongModel[size];
+        }
+    };
     String songId = "";
     String songName = "";
     String songPath = "";
@@ -20,6 +30,16 @@ public class SongModel implements Parcelable {
     String songDuration = "";
 
     public SongModel() {
+    }
+
+    protected SongModel(Parcel in) {
+        this.songId = in.readString();
+        this.songName = in.readString();
+        this.songPath = in.readString();
+        this.songArtist = in.readString();
+        this.songGenre = in.readString();
+        this.songAuthor = in.readString();
+        this.songDuration = in.readString();
     }
 
     public String getSongId() {
@@ -93,26 +113,4 @@ public class SongModel implements Parcelable {
         dest.writeString(this.songAuthor);
         dest.writeString(this.songDuration);
     }
-
-    protected SongModel(Parcel in) {
-        this.songId = in.readString();
-        this.songName = in.readString();
-        this.songPath = in.readString();
-        this.songArtist = in.readString();
-        this.songGenre = in.readString();
-        this.songAuthor = in.readString();
-        this.songDuration = in.readString();
-    }
-
-    public static final Parcelable.Creator<SongModel> CREATOR = new Parcelable.Creator<SongModel>() {
-        @Override
-        public SongModel createFromParcel(Parcel source) {
-            return new SongModel(source);
-        }
-
-        @Override
-        public SongModel[] newArray(int size) {
-            return new SongModel[size];
-        }
-    };
 }

@@ -11,7 +11,7 @@ import com.google.gson.Gson;
 
 public class Utils {
 
-    public static void saveObjectInPreference(Context context, String key, Object value){
+    public static void saveObjectInPreference(Context context, String key, Object value) {
         SharedPreferences preferences = context.getSharedPreferences("pbSave", Context.MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = preferences.edit();
         Gson gson = new Gson();
@@ -20,10 +20,10 @@ public class Utils {
         prefsEditor.commit();
     }
 
-    public static String getFromPreference(Context context, String key){
+    public static String getFromPreference(Context context, String key) {
 
         SharedPreferences preferences = context.getSharedPreferences("pbSave", Context.MODE_PRIVATE);
-        return preferences.getString(key,"");
+        return preferences.getString(key, "");
     }
 
 }

@@ -7,7 +7,8 @@
     <color name="red">#F00000</color>
     <color name="nbety">#B00000</color>
     <color name="blac">#00BCD4</color>
+    <color name="pureblack">#000000</color>
     <color name="white">#ffffff</color>
-    <color name="trans">#00000000 </color>
-    <color name="gold">#88ffd700 </color>
+    <color name="trans">#00000000</color>
+    <color name="gold">#88ffd700</color>
 </resources>

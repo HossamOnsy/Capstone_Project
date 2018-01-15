@@ -9,11 +9,11 @@ import java.net.URISyntaxException;
 /**
  * Created by Eli on 1/6/2018.
  */
-
+// This Class is remainging for the upload feature
 public class FileUtils {
     public static String getPath(Context context, Uri uri) throws URISyntaxException {
         if ("content".equalsIgnoreCase(uri.getScheme())) {
-            String[] projection = { "_data" };
+            String[] projection = {"_data"};
             Cursor cursor = null;
 
             try {
@@ -25,8 +25,7 @@ public class FileUtils {
             } catch (Exception e) {
                 // Eat it
             }
-        }
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();
         }
 

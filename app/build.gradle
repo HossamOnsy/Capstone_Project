@@ -1,8 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'Randomness'
+            keyPassword 'Randomness'
+            storeFile file('/home/hossamonsy/AndroidStudioProjects/Tryouts/Capstone_Project/Randomness_release_key.jks')
+            storePassword 'Randomness'
+        }
+    }
     compileSdkVersion 26
-
     defaultConfig {
         applicationId "com.hossam.capstoneproject"
         minSdkVersion 15
@@ -15,6 +22,8 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+            debuggable true
         }
     }
     buildToolsVersion '26.0.2'
@@ -34,14 +43,12 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-
     // FireBase
     implementation("com.google.firebase:firebase-storage:$firebaseVersion")
     implementation("com.google.firebase:firebase-auth:$firebaseVersion")
     implementation("com.google.firebase:firebase-database:$firebaseVersion")
-
     implementation 'com.google.android.exoplayer:exoplayer:r2.4.0'
-
+    implementation 'com.firebase:firebase-jobdispatcher:0.8.5'
     //ButterKnife
     implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
     implementation 'com.jakewharton:butterknife:8.8.1'

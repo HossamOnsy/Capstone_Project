@@ -1,15 +1,20 @@
 package com.hossam.capstoneproject.activities;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -59,7 +64,7 @@ import butterknife.Unbinder;
 
 
 public class MainActivity extends AppCompatActivity {
-//    private static final int FILE_SELECT_CODE = 0;
+    //    private static final int FILE_SELECT_CODE = 0;
 //    private static final int READ_EXTERNAL_STORAGE_PERMISSION_CODE = 101;
     private static final String TAG = MainActivity.class.getSimpleName();
     String s;
@@ -75,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
     SimpleExoPlayerView video_view;
     @BindView(R.id.recycler_view)
     RecyclerView recycler_view;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+
     String start = "0", end = "2";
     String maxid;
     ArrayList<SongModel> songModels;
@@ -92,10 +100,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     Unbinder unbinder;
-//    int i = 0;
+    //    int i = 0;
     MediaSource mediaSource;
 //    MediaMetadataRetriever mmr;
 //    String albumName;
+    boolean connected = false;
 
     @OnClick({R.id.shuffle, R.id.get_a_different_list})
     void View(View view) {
@@ -142,40 +151,46 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        DatabaseReference ref = database.getReference("songs");
-        ref.orderByChild("songId").startAt(start).endAt(end).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                songModels = new ArrayList<>();
-                Log.v(TAG, dataSnapshot.toString());
-                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
-                    Log.v(TAG, dataSnapshot1.toString());
-                    SongModel songModel = dataSnapshot1.getValue(SongModel.class);
-                    songModels.add(songModel);
+        checkConnectivity();
+        if (connected) {
+            DatabaseReference ref = database.getReference("songs");
+            ref.orderByChild("songId").startAt(start).endAt(end).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    songModels = new ArrayList<>();
+                    Log.v(TAG, dataSnapshot.toString());
+                    for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+                        Log.v(TAG, dataSnapshot1.toString());
+                        SongModel songModel = dataSnapshot1.getValue(SongModel.class);
+                        songModels.add(songModel);
+                    }
+
+                    SongsAdapter songsAdapter = new SongsAdapter(songModels, MainActivity.this);
+                    recycler_view.setAdapter(songsAdapter);
+                    try {
+                        Log.v(TAG, songModels.size() + "size");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    if (songModels.size() > 0 && lastKnownIndex == -1) {
+                        lastKnownIndex = 0;
+                        initializePlayer(Uri.parse(songModels.get(0).getSongPath()));
+                    }
+
+                    progressBar.setVisibility(View.GONE);
                 }
 
-                SongsAdapter songsAdapter = new SongsAdapter(songModels, MainActivity.this);
-                recycler_view.setAdapter(songsAdapter);
-                try {
-                    Log.v(TAG, songModels.size() + "size");
-                } catch (Exception e) {
-                    e.printStackTrace();
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                    progressBar.setVisibility(View.GONE);
                 }
-
-                if (songModels.size() > 0 && lastKnownIndex == -1) {
-                    lastKnownIndex = 0;
-                    initializePlayer(Uri.parse(songModels.get(0).getSongPath()));
-                }
-
-                progressBar.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
-                progressBar.setVisibility(View.GONE);
-            }
-        });
+            });
+        } else {
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(this, getString(R.string.connectionlost), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -185,15 +200,35 @@ public class MainActivity extends AppCompatActivity {
 
         unbinder = ButterKnife.bind(this);
 
+
         recycler_view.setHasFixedSize(true);
         recycler_view.setLayoutManager(new LinearLayoutManager(this));
 
+        toolbar.setTitle(R.string.app_name);
+        toolbar.setTitleTextColor(getResources().getColor(R.color.white));
+
+        checkConnectivity();
         checkAuth();
 
 
         start = "0";
 
 
+    }
+
+    private void checkConnectivity() {
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
+                //we are connected to a network
+                connected = true;
+            } else {
+                connected = false;
+
+            }
+        }
     }
 
     private void getMaximumId() {

@@ -43,7 +43,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongsViewHol
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.startActivity(new Intent(activity, DetailsActivity.class).putExtra("songModel",songModels.get(position)));
+                activity.startActivity(new Intent(activity, DetailsActivity.class).putExtra("songModel", songModels.get(position)));
             }
         });
     }

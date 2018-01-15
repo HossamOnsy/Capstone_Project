@@ -11,5 +11,10 @@
     <string name="song_name">Song Name : </string>
     <string name="duration">Duration : </string>
     <string name="now_playing">Now Playing … </string>
+    <string name="navitaging_snackbar">Voice Permission is required to Navigate Using your voice in this app</string>
+    <string name="song_details">Song Details</string>
+    <string name="connected">You Are Connected To The Internet</string>
+    <string name="something_went_wrong">Something is wrong with your internet connection</string>
+    <string name="connectionlost">Connection Lost Please Check Your Internet Connection</string>
 
 </resources>
