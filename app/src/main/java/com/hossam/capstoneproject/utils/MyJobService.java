@@ -17,23 +17,23 @@ import com.hossam.capstoneproject.R;
 public class MyJobService extends JobService {
     private static final String TAG = MyJobService.class.getSimpleName();
     public static boolean previousFlag = false;
+
     @Override
     public boolean onStartJob(JobParameters job) {
-        Log.v(TAG,"MyJobService");
-        Log.v("JobScheduler","onStartJob");
+        Log.v(TAG, "MyJobService");
+        Log.v("JobScheduler", "onStartJob");
         boolean connected = false;
-        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
-            if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+            if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
                     connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
                 //we are connected to a network
-                connected=true;
-                if(!previousFlag)
+                connected = true;
+                if (!previousFlag)
                     Toast.makeText(this, R.string.connected, Toast.LENGTH_SHORT).show();
-            }
-            else{
+            } else {
                 connected = false;
-                if(previousFlag)
+                if (previousFlag)
                     Toast.makeText(this, R.string.something_went_wrong, Toast.LENGTH_SHORT).show();
 
             }
@@ -47,24 +47,24 @@ public class MyJobService extends JobService {
 
     private void codeYouWantToRun() {
 
-            try {
+        try {
 
-                Log.d(TAG, "completeJob: " + "jobStarted");
-                //This task takes 2 seconds to complete.
+            Log.d(TAG, "completeJob: " + "jobStarted");
+            //This task takes 2 seconds to complete.
 
-                Thread.sleep(2000);
+            Thread.sleep(2000);
 
-                Log.d(TAG, "completeJob: " + "jobFinished");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Log.d(TAG, "completeJob: " + "jobFinished");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 
     }
 
     @Override
     public boolean onStopJob(JobParameters job) {
-        Log.v("JobScheduler","onStopJob");
+        Log.v("JobScheduler", "onStopJob");
         return false; // Answers the question: "Should this job be retried?"
     }
 

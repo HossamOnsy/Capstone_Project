@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
     Unbinder unbinder;
     //    int i = 0;
     MediaSource mediaSource;
-//    MediaMetadataRetriever mmr;
+    //    MediaMetadataRetriever mmr;
 //    String albumName;
     boolean connected = false;
 
